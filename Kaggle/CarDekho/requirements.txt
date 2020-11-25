@@ -8,3 +8,8 @@ pyparsing==2.4.7
 python-dateutil==2.8.1
 pytz==2020.4
 six==1.15.0
+Flask==1.1.2
+jsonify==0.5
+sklearn==0.0
+
+
