@@ -14,7 +14,10 @@ Current_Year = datetime.now().year
 
 app = Flask(__name__, template_folder='templates')
 
-model = pickle.load(open('random_forest_regression_model.pkl', 'rb'))
+model_RF = pickle.load(open('RandomForestRegression.pkl', 'rb'))
+model_LIN = pickle.load(open('LinearRegression.pkl', 'rb'))
+model_RDG = pickle.load(open('RidgeRegression.pkl', 'rb'))
+model_LAS = pickle.load(open('LassoRegression.pkl', 'rb'))
 
 @app.route('/', methods=['GET'])
 def home():
@@ -27,6 +30,7 @@ def predict():
     Fuel_Type_Petrol = 0
     if request.method == 'POST':
         Year = int(request.form['Year'])
+        age_of_car = Current_Year - Year
         Present_Price = float(request.form['Present_Price'])
         Kms_Driven = int(request.form['Kms_Driven'])
         Owner = int(request.form['Owner'])
@@ -53,17 +57,32 @@ def predict():
         else:
             Transmission_Manual = 0
 
-        prediction = model.predict([[Present_Price, Kms_Driven, Owner, Year, Fuel_Type_Diesel, Fuel_Type_Petrol,
+        prediction_RF = model_RF.predict([[Present_Price, Kms_Driven, Owner, age_of_car, Fuel_Type_Diesel, Fuel_Type_Petrol,
                                      Seller_Type_Individual, Transmission_Manual]])
-        output = round(prediction[0], 2)
-        if output < 0:
-            return render_template('index.html', prediction_texts="Sorry you cannot sell this car")
-        else:
-            return render_template('index.html', prediction_text="You Can Sell The Car at {}".format(output))
+
+        prediction_LIN = model_LIN.predict([[Present_Price, Kms_Driven, Owner, age_of_car, Fuel_Type_Diesel, Fuel_Type_Petrol,
+                                           Seller_Type_Individual, Transmission_Manual]])
+
+        prediction_RDG = model_RDG.predict([[Present_Price, Kms_Driven, Owner, age_of_car, Fuel_Type_Diesel, Fuel_Type_Petrol,
+                                             Seller_Type_Individual, Transmission_Manual]])
+
+        prediction_LAS = model_LAS.predict([[Present_Price, Kms_Driven, Owner, age_of_car, Fuel_Type_Diesel, Fuel_Type_Petrol,
+                                             Seller_Type_Individual, Transmission_Manual]])
+
+        output_RF = round(prediction_RF[0], 2)
+        output_LIN = round(prediction_LIN[0], 2)
+        output_RDG = round(prediction_RDG[0], 2)
+        output_LAS = round(prediction_LAS[0], 2)
+
+        predictions = 'PREDICTIONS RandomForest: ' + str(output_RF) + ' Linear Regression: ' + str(output_LIN) + \
+                      ' Ridge Regression: ' + str(output_RDG) + ' Lasso Regression: ' + str(output_LAS)
+
+        return render_template('index.html', prediction_text=predictions)
+
     else:
         return render_template('index.html')
 
-if __name__=="__main__":
-    #port = int(os.environ.get("PORT", 5000))
+
+if __name__ == "__main__":
     app.run(debug=True)
 
